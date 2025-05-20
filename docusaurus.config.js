@@ -1,10 +1,7 @@
-
 // @ts-check
-// Docusaurus config
 const { themes } = require('prism-react-renderer');
 const lightCodeTheme = themes.github;
 const darkCodeTheme = themes.dracula;
-
 
 module.exports = {
   title: 'SGEP Copilot Hub',
@@ -14,8 +11,8 @@ module.exports = {
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/logo.svg',
-  organizationName: 'guillaumebizet', // Usually your GitHub org/user name.
-  projectName: 'test', // Usually your repo name.
+  organizationName: 'guillaumebizet',
+  projectName: 'test',
   i18n: {
     defaultLocale: 'en',
     locales: ['en']
@@ -25,10 +22,9 @@ module.exports = {
       '@docusaurus/preset-classic',
       ({
         docs: {
-  sidebarPath: require.resolve('./sidebars.js'),
-  routeBasePath: '/', // <-- rend la doc accessible à la racine !
-},
-
+          sidebarPath: require.resolve('./sidebars.js'),
+          routeBasePath: '/', // <-- clé !
+        },
         blog: false,
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -44,13 +40,13 @@ module.exports = {
         src: 'img/logo.svg',
       },
       items: [
-        {to: '/docs/why', label: 'Why?', position: 'left'},
-        {to: '/docs/resources', label: 'Resources', position: 'left'},
-        {to: '/docs/prompts', label: 'Prompts', position: 'left'},
-        {to: '/docs/bugs', label: 'Bugs', position: 'left'},
-        {to: '/docs/how-to-contribute', label: 'Contribute', position: 'right'},
-        {to: '/docs/who', label: "Who's Who", position: 'right'},
-        {to: '/docs/sponsors', label: 'Sponsors', position: 'right'},
+        {to: '/why', label: 'Why?', position: 'left'},
+        {to: '/resources', label: 'Resources', position: 'left'},
+        {to: '/prompts', label: 'Prompts', position: 'left'},
+        {to: '/bugs', label: 'Bugs', position: 'left'},
+        {to: '/how-to-contribute', label: 'Contribute', position: 'right'},
+        {to: '/who', label: "Who's Who", position: 'right'},
+        {to: '/sponsors', label: 'Sponsors', position: 'right'},
       ],
     },
     prism: {
