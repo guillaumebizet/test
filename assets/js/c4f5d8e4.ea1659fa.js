@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunksgep_copilot_hub=self.webpackChunksgep_copilot_hub||[]).push([[634],{9179:(e,s,c)=>{c.r(s),c.d(s,{default:()=>o});c(6540);var l=c(4848);function o(){return(0,l.jsxs)("main",{children:[(0,l.jsx)("h1",{children:"Welcome to SGEP Copilot Hub"}),(0,l.jsx)("p",{children:"See docs for details."})]})}}}]);
