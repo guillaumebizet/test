@@ -1,0 +1,44 @@
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.cards > div {
+  flex: 1 1 300px;
+  min-width: 260px;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px #0002;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.cards .tags {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.cards .tag {
+  padding: 0.2em 0.8em;
+  border-radius: 999px;
+  background: #EEE;
+  font-size: 0.8em;
+  color: #333;
+}
+.cards .tag.internal { background: #f99; color: #B00; }
+.cards .actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+.cards .action {
+  background: #E60028;
+  color: #fff;
+  padding: 0.2em 0.8em;
+  border-radius: 0.5em;
+  font-size: 0.9em;
+  text-decoration: none;
+}
