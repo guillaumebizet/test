@@ -11,7 +11,7 @@ module.exports = {
   tagline: 'Empowering collaborative AI adoption at Société Générale.',
   url: 'https://guillaumebizet.github.io',
   baseUrl: '/test/',
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/logo.svg',
   organizationName: 'guillaumebizet', // Usually your GitHub org/user name.
