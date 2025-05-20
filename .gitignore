@@ -1,0 +1,32 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Docusaurus build output
+.build/
+.docusaurus/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDEs & editors
+.vscode/
+.idea/
+*.sw?
+*~
+
+# Logs
+logs/
+*.log
+
+# Misc
+.env
+.env.local
+.env.*.local
+
+# Ignore local generated files
+coverage/
