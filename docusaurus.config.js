@@ -7,8 +7,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 module.exports = {
   title: 'SGEP Copilot Hub',
   tagline: 'Empowering collaborative AI adoption at Société Générale.',
-  url: 'https://yourusername.github.io',
-  baseUrl: '/sgep-copilot-hub/',
+  url: 'https://guillaumebizet.github.io/',
+  baseUrl: '/test/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/logo.svg',
