@@ -12,8 +12,8 @@ module.exports = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/logo.svg',
-  organizationName: 'yourusername', // Usually your GitHub org/user name.
-  projectName: 'sgep-copilot-hub', // Usually your repo name.
+  organizationName: 'guillaumebizet', // Usually your GitHub org/user name.
+  projectName: 'test', // Usually your repo name.
   i18n: {
     defaultLocale: 'en',
     locales: ['en']
