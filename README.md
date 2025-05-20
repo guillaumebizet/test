@@ -1,5 +1,5 @@
 # SGEP Copilot Hub 
-
+ 
 A professional, Netflix-like documentation site for collaborative AI adoption at Société Générale.  
 Hosted on GitHub Pages. All contributions via PR.
 
