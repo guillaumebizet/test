@@ -1,6 +1,7 @@
 
 module.exports = {
   docs: [
+    'intro',
     'welcome',
     'agenda',
     'why',
