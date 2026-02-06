@@ -44,6 +44,7 @@ module.exports = {
         {to: '/resources', label: 'Resources', position: 'left'},
         {to: '/prompts', label: 'Prompts', position: 'left'},
         {to: '/bugs', label: 'Bugs', position: 'left'},
+        {to: '/fallout-rpg', label: 'Fallout RPG', position: 'left'},
         {to: '/how-to-contribute', label: 'Contribute', position: 'right'},
         {to: '/who', label: "Who's Who", position: 'right'},
         {to: '/sponsors', label: 'Sponsors', position: 'right'},
