@@ -1,8 +1,10 @@
-import React, { useMemo, useReducer } from 'react';
+import React, { useMemo, useReducer, useEffect, useRef, useState } from 'react';
 import Layout from '@theme/Layout';
 import styles from './fallout-rpg.module.css';
 
 const MAP_SIZE = 7;
+const MOVEMENT_RANGE = 3;
+const MAX_AP = 6;
 
 const ZONES = [
   { name: 'Vault 17', type: 'vault', description: 'Sterile corridors and humming reactors.' },
@@ -47,12 +49,15 @@ const initialState = {
   position: { x: 3, y: 3 },
   zoneIndex: 0,
   log: [
-    { type: 'system', text: 'Pip-Boy online. Your mission: keep the Wasteland alive.' },
+    { type: 'system', text: "Pip-Boy online. Your mission: keep the Wasteland alive." },
   ],
   encounter: null,
   quest: QUESTS[0],
   questProgress: 0,
   reputation: 12,
+  ap: MAX_AP,
+  maxAp: MAX_AP,
+  playerTurn: true,
 };
 
 const zonePalette = {
@@ -92,6 +97,7 @@ const rollEncounter = () => {
 const reducer = (state, action) => {
   switch (action.type) {
     case 'MOVE': {
+      if (state.ap <= 0) return addLog(state, "Pas assez d'AP pour se déplacer.", 'warning');
       const nextPosition = {
         x: clamp(state.position.x + action.payload.x, 0, MAP_SIZE - 1),
         y: clamp(state.position.y + action.payload.y, 0, MAP_SIZE - 1),
@@ -99,24 +105,24 @@ const reducer = (state, action) => {
       const zoneIndex = (nextPosition.x + nextPosition.y * MAP_SIZE) % ZONES.length;
       let nextState = {
         ...state,
-        day: state.day + 1,
         position: nextPosition,
         zoneIndex,
-        thirst: clamp(state.thirst + 4, 0, 100),
-        hunger: clamp(state.hunger + 3, 0, 100),
-        radiation: clamp(state.radiation + (Math.random() < 0.4 ? 3 : 0), 0, 100),
+        ap: clamp(state.ap - 1, 0, state.maxAp),
+        thirst: clamp(state.thirst + 1, 0, 100),
+        hunger: clamp(state.hunger + 1, 0, 100),
+        radiation: clamp(state.radiation + (Math.random() < 0.25 ? 2 : 0), 0, 100),
       };
       nextState = addLog(
         nextState,
-        `Déplacement vers ${ZONES[zoneIndex].name}. Le compteur Geiger crépite.`,
+        `Déplacement tactique vers ${ZONES[zoneIndex].name}.`,
       );
-      const encounter = rollEncounter();
-      if (encounter) {
+      const encounter = state.encounter || (Math.random() < 0.35 ? rollEncounter() : null);
+      if (encounter && !state.encounter) {
         nextState = addLog(nextState, `Alerte : ${encounter.name} repéré !`, 'alert');
       }
       return {
         ...nextState,
-        encounter,
+        encounter: encounter || state.encounter,
       };
     }
     case 'REST': {
@@ -131,19 +137,31 @@ const reducer = (state, action) => {
       return nextState;
     }
     case 'SCAVENGE': {
+      if (state.ap < 2) return addLog(state, "Pas assez d'AP pour fouiller.", 'warning');
       const lootRoll = Math.random();
       let caps = 0;
       let ammo = 0;
       let medkits = 0;
       let scrap = 0;
-      if (lootRoll < 0.35) {
-        caps = 10 + Math.floor(Math.random() * 10);
-      } else if (lootRoll < 0.6) {
-        ammo = 2 + Math.floor(Math.random() * 4);
-      } else if (lootRoll < 0.8) {
-        medkits = 1;
+      // Loot table influenced by zone type
+      const zoneType = ZONES[state.zoneIndex].type;
+      if (zoneType === 'settlement') {
+        if (lootRoll < 0.5) caps = 15 + Math.floor(Math.random() * 20);
+        else ammo = 1 + Math.floor(Math.random() * 3);
+      } else if (zoneType === 'ruins' || zoneType === 'industrial') {
+        if (lootRoll < 0.4) scrap = 2 + Math.floor(Math.random() * 4);
+        else if (lootRoll < 0.7) medkits = 1;
+        else caps = 5 + Math.floor(Math.random() * 10);
       } else {
-        scrap = 2;
+        if (lootRoll < 0.35) {
+          caps = 8 + Math.floor(Math.random() * 12);
+        } else if (lootRoll < 0.6) {
+          ammo = 2 + Math.floor(Math.random() * 4);
+        } else if (lootRoll < 0.8) {
+          medkits = 1;
+        } else {
+          scrap = 2;
+        }
       }
       let nextState = {
         ...state,
@@ -152,8 +170,9 @@ const reducer = (state, action) => {
         ammo: state.ammo + ammo,
         medkits: state.medkits + medkits,
         scrap: state.scrap + scrap,
-        thirst: clamp(state.thirst + 4, 0, 100),
-        hunger: clamp(state.hunger + 3, 0, 100),
+        thirst: clamp(state.thirst + 3, 0, 100),
+        hunger: clamp(state.hunger + 2, 0, 100),
+        ap: clamp(state.ap - 2, 0, state.maxAp),
       };
       nextState = addLog(
         nextState,
@@ -174,12 +193,14 @@ const reducer = (state, action) => {
     }
     case 'FIGHT': {
       if (!state.encounter) return state;
+      if (state.ap < 2) return addLog(state, "Pas assez d'AP pour attaquer.", 'warning');
       const enemy = state.encounter;
       const playerDamage = 6 + Math.floor(Math.random() * 8);
       const enemyHealth = enemy.currentHealth - playerDamage;
       let nextState = {
         ...state,
         ammo: clamp(state.ammo - 1, 0, 999),
+        ap: clamp(state.ap - 2, 0, state.maxAp),
       };
       if (enemyHealth <= 0) {
         nextState = {
@@ -209,13 +230,34 @@ const reducer = (state, action) => {
       );
       return nextState;
     }
+
+    case 'END_TURN': {
+      // enemy acts once if present, then refill AP
+      let nextState = { ...state };
+      if (state.encounter) {
+        const enemy = state.encounter;
+        const damage = enemy.attack + Math.floor(Math.random() * 6);
+        nextState = {
+          ...nextState,
+          health: clamp(nextState.health - damage, 0, nextState.maxHealth),
+          radiation: clamp(nextState.radiation + 1, 0, 100),
+        };
+        nextState = addLog(nextState, `${enemy.name} profite de l'ouverture et inflige ${damage} dégâts.`);
+      }
+      nextState = {
+        ...nextState,
+        ap: nextState.maxAp,
+        playerTurn: true,
+      };
+      return nextState;
+    }
     case 'FLEE': {
       if (!state.encounter) return state;
       const escape = Math.random() > 0.35;
       let nextState = {
         ...state,
-        day: state.day + 1,
         encounter: escape ? null : state.encounter,
+        ap: escape ? clamp(state.ap - 1, 0, state.maxAp) : clamp(state.ap - 2, 0, state.maxAp),
         health: clamp(state.health - (escape ? 4 : 10), 0, state.maxHealth),
         radiation: clamp(state.radiation + 3, 0, 100),
       };
@@ -255,6 +297,8 @@ const reducer = (state, action) => {
 
 const FalloutRpg = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [isFull, setIsFull] = useState(false);
+  const pageRef = useRef(null);
   const zone = ZONES[state.zoneIndex];
   const mapTiles = useMemo(() => {
     return Array.from({ length: MAP_SIZE * MAP_SIZE }, (_, index) => {
@@ -271,15 +315,108 @@ const FalloutRpg = () => {
 
   const healthPercent = (state.health / state.maxHealth) * 100;
 
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFull(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.ctrlKey || e.metaKey) return;
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          e.preventDefault();
+          dispatch({ type: 'MOVE', payload: { x: 0, y: -1 } });
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          e.preventDefault();
+          dispatch({ type: 'MOVE', payload: { x: 0, y: 1 } });
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          e.preventDefault();
+          dispatch({ type: 'MOVE', payload: { x: -1, y: 0 } });
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          e.preventDefault();
+          dispatch({ type: 'MOVE', payload: { x: 1, y: 0 } });
+          break;
+        case ' ': // space -> scavenge
+          e.preventDefault();
+          dispatch({ type: 'SCAVENGE' });
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (state.encounter) dispatch({ type: 'FIGHT' });
+          break;
+        default:
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [dispatch, state.encounter]);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement && pageRef.current) {
+        await pageRef.current.requestFullscreen();
+      } else if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      // ignore
+    }
+  };
+
+  const reachableSet = useMemo(() => {
+    const set = new Set();
+    mapTiles.forEach((t) => {
+      const dist = Math.abs(t.x - state.position.x) + Math.abs(t.y - state.position.y);
+      if (dist <= MOVEMENT_RANGE) set.add(`${t.x}-${t.y}`);
+    });
+    return set;
+  }, [mapTiles, state.position]);
+
+  const tips = [
+    'Utilisez les AP pour optimiser vos actions chaque tour.',
+    'Fouillez les settlements pour plus de caps.',
+    "Surveillez l'irradiation — utilisez un medkit si nécessaire.",
+    'Espace = fouiller, Entrée = tirer, Flèches/WASD pour bouger.',
+  ];
+  const currentTip = useMemo(() => {
+    if (state.radiation > 60) return "Radiation élevée — cherchez des medkits ou un abri.";
+    if (state.hunger > 70) return "Faim critique — trouvez de la nourriture ou reposez-vous.";
+    if (state.thirst > 70) return "Soif critique — trouvez de l\'eau filtrée.";
+    return tips[Math.floor(Math.random() * tips.length)];
+  }, [state.radiation, state.hunger, state.thirst]);
+
   return (
     <Layout title="Fallout Web RPG" description="A Fallout-inspired RPG experience in the browser.">
-      <div className={styles.page}>
+      <div ref={pageRef} className={`${styles.page} ${isFull ? styles.fullscreen : ''}`}>
         <header className={styles.header}>
           <h1>WASTELAND OPERATOR</h1>
           <p>
             Prenez le contrôle d’un opérateur Vault-Tec, explorez la zone contaminée, gérez vos ressources
             et survivez assez longtemps pour reconnecter les relais du désert.
           </p>
+          <div style={{ marginTop: '0.8rem' }}>
+            <button type="button" className={styles.fullscreenButton} onClick={toggleFullscreen}>
+              {isFull ? 'Quitter plein écran' : 'Plein écran'}
+            </button>
+            <span style={{ marginLeft: '0.8rem', color: '#9bd39b', fontSize: '0.85rem' }}>Raccourcis: flèches / WASD, espace = fouiller, Entrée = tirer</span>
+          </div>
+          <div className={styles.tip}>
+            {currentTip}
+          </div>
         </header>
 
         <section className={styles.layout}>
@@ -301,6 +438,10 @@ const FalloutRpg = () => {
               <div className={styles.stat}>
                 <span>Munitions</span>
                 <strong>{state.ammo}</strong>
+              </div>
+              <div className={styles.stat}>
+                <span>AP</span>
+                <strong>{state.ap}/{state.maxAp}</strong>
               </div>
               <div className={styles.stat}>
                 <span>Stimpaks</span>
@@ -359,13 +500,22 @@ const FalloutRpg = () => {
             <div className={styles.map}>
               {mapTiles.map((tile) => {
                 const isPlayer = tile.x === state.position.x && tile.y === state.position.y;
+                const reachable = reachableSet.has(`${tile.x}-${tile.y}`);
                 return (
                   <div
                     key={`${tile.x}-${tile.y}`}
-                    className={`${styles.tile} ${isPlayer ? styles.playerTile : ''}`}
+                    className={`${styles.tile} ${isPlayer ? styles.playerTile : ''} ${reachable ? styles.reachableTile : ''}`}
                   >
-                    <div>{zonePalette[tile.zoneInfo.type] || '⬛'}</div>
-                    <div>{tile.zoneInfo.name}</div>
+                    <div className={styles.tileContent}>
+                      <div className={styles.zoneIcon}>{zonePalette[tile.zoneInfo.type] || '⬛'}</div>
+                      <div className={styles.zoneName}>{tile.zoneInfo.name}</div>
+                      {isPlayer && (
+                        <div className={styles.avatar} title="Vous">
+                          <div className={styles.avatarPortrait}>YOU</div>
+                          <div className={styles.avatarAp}>{state.ap}/{state.maxAp}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -512,6 +662,33 @@ const FalloutRpg = () => {
             </div>
           </div>
         </section>
+
+        {/* Tactical HUD (Fallout Tactics style) */}
+        <div className={styles.tacticalHud} role="region" aria-label="Tactical HUD">
+          <div className={styles.hudPortrait}>YOU</div>
+          <div className={styles.hudStats}>
+            <div style={{display:'flex', justifyContent:'space-between', color:'#bfe8bf'}}>
+              <div>Nom: Opérateur</div>
+              <div>Jour {state.day}</div>
+            </div>
+            <div className={styles.hudBars}>
+              <div style={{width:80, color:'#bfe8bf'}}>PV</div>
+              <div className={styles.hudBar}><div className={styles.hudBarFill} style={{width:`${healthPercent}%`}} /></div>
+              <div style={{width:60, textAlign:'right', color:'#bfe8bf'}}>{state.health}%</div>
+            </div>
+            <div className={styles.hudBars}>
+              <div style={{width:80, color:'#bfe8bf'}}>AP</div>
+              <div className={styles.hudBar}><div className={styles.hudBarFill} style={{width:`${(state.ap/state.maxAp)*100}%`, background:'linear-gradient(90deg,#ffd66b,#ffb26b)'}} /></div>
+              <div className={styles.hudAp}>{state.ap}/{state.maxAp}</div>
+            </div>
+          </div>
+          <div className={styles.hudActions}>
+            <button className={styles.hudActionBtn} onClick={() => dispatch({type:'END_TURN'})}>End Turn</button>
+            <button className={styles.hudActionBtn} onClick={() => dispatch({type:'REST'})}>Rest</button>
+            <button className={styles.hudActionBtn} onClick={() => dispatch({type:'SCAVENGE'})}>Scavenge</button>
+            <button className={styles.hudActionBtn} onClick={() => dispatch({type:'USE_MEDKIT'})} disabled={state.medkits===0}>Medkit</button>
+          </div>
+        </div>
 
         <footer className={styles.footer}>
           Fallout-inspired tactical RPG experience. Ajustez votre stratégie pour survivre au désert.

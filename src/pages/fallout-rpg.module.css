@@ -126,6 +126,103 @@
   color: #e0ffe0;
 }
 
+.reachableTile {
+  border-color: #d1ffb0;
+  box-shadow: 0 0 18px rgba(200, 255, 180, 0.45);
+  transform: translateY(-2px);
+}
+
+.tip {
+  margin-top: 0.6rem;
+  color: #bfe8bf;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Tile content layout */
+.tileContent { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.zoneIcon { font-size: 1.2rem; }
+.zoneName { font-size: 0.7rem; color: #9bd39b; }
+
+/* Player avatar inside tile */
+.avatar { position:absolute; left:50%; transform:translateX(-50%); bottom:6px; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.avatarPortrait { width:36px; height:36px; border-radius:6px; background:linear-gradient(180deg,#183218,#0b170b); display:flex; align-items:center; justify-content:center; color:#dfffd6; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,0.6); border:1px solid rgba(150,250,150,0.2); }
+.avatarAp { font-size:0.72rem; color:#cfeccf; }
+
+/* Bottom tactical HUD */
+.tacticalHud { position:fixed; left:50%; transform:translateX(-50%); bottom:10px; width:820px; max-width:calc(100% - 40px); background:rgba(4,10,4,0.85); border:1px solid rgba(90,180,90,0.25); padding:10px 14px; border-radius:10px; display:flex; gap:12px; align-items:center; z-index:10000; }
+.hudPortrait { width:86px; height:86px; border-radius:6px; background:linear-gradient(180deg,#223322,#0b120b); display:flex; align-items:center; justify-content:center; color:#dfffd6; font-weight:800; font-size:0.95rem; border:1px solid rgba(120,240,120,0.2); }
+.hudStats { flex:1; display:flex; flex-direction:column; gap:6px; }
+.hudBars { display:flex; gap:8px; align-items:center; }
+.hudBar { flex:1; height:12px; background:rgba(10,20,10,0.6); border-radius:6px; overflow:hidden; border:1px solid rgba(60,140,60,0.2); }
+.hudBarFill { height:100%; background:linear-gradient(90deg,#68f068,#00ff9d); }
+.hudAp { width:120px; text-align:center; color:#cfeccf; }
+.hudActions { display:flex; gap:8px; }
+.hudActionBtn { background:rgba(8,24,8,0.95); border:1px solid rgba(100,220,100,0.35); color:#d6ffd6; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem; }
+
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 1rem;
+  background: radial-gradient(circle at top, #081207, #020301 40%, #000000 100%);
+}
+
+.fullscreen .layout {
+  grid-template-columns: 1fr 1.6fr 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.fullscreen .map {
+  grid-template-columns: repeat(7, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.fullscreen .tile {
+  padding: 1.2rem 0;
+  font-size: 0.9rem;
+}
+
+.fullscreen .header h1 {
+  font-size: 2.4rem;
+}
+
+.fullscreen .log {
+  max-height: 50vh;
+}
+
+.fullscreenButton {
+  background: rgba(12, 28, 12, 0.95);
+  border: 1px solid rgba(120, 240, 120, 0.6);
+  color: #d6ffd6;
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* HUD repositioning in fullscreen: fix panels around edges for tactical view */
+.fullscreen .layout > .panel:nth-child(1) {
+  position: fixed;
+  left: 1.5rem;
+  top: 3.6rem;
+  width: 300px;
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+}
+.fullscreen .layout > .panel:nth-child(2) {
+  margin: 0 340px; /* reserve space for left/right HUD */
+}
+.fullscreen .layout > .panel:nth-child(3) {
+  position: fixed;
+  right: 1.5rem;
+  top: 3.6rem;
+  width: 300px;
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+}
+
 .zoneType {
   font-size: 0.65rem;
   color: #6dbb6d;
