@@ -19,6 +19,22 @@ npm install
 npm run start
 ```
 
+## Fitness Tracker (nutrition + home gym)
+
+Nouvelle page de suivi personnel à l'URL :
+
+```
+http://localhost:3000/test/fitness-coach
+```
+
+Fonctions incluses :
+- ajout d'aliments manuel
+- recherche web via OpenFoodFacts avec lien de vérification
+- suivi macros/kcal par jour
+- saisie poids + tension
+- journal de séances muscu
+- génération d'un prompt prêt à coller dans ChatGPT
+
 ## Fallout RPG (Page de démo)
 
 La page RPG est disponible à l’URL suivante une fois le serveur lancé :
